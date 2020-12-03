@@ -19,9 +19,11 @@ int main() {
   auto w2 = wrap(new B, &B::bar);
 
   try {
-    auto engine = createEngine(&w1, &w2);
-    cout << engine->execute<0>() << endl;
-    cout << engine->execute<1>(3) << endl;
+    auto engine = createEngine(&w1)
+      .addWrapper(&w2);
+
+    cout << engine.execute<0>() << endl;
+    cout << engine.execute<1>(3) << endl;
 
   } catch (bad_cast e) {
     cout << e.what() << endl;
