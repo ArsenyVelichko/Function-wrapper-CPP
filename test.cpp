@@ -4,26 +4,38 @@
 
 using namespace std;
 
-class A {
+class Subject1 {
 public:
-  int foo(int a) { return a * a; }
+  int foo(int a, int b) { return a * b; }
 };
 
-class B {
+class Subject2 {
 public:
-  double bar(double i) { return i * i; }
+  int bar(int x) { return x / 3; }
 };
 
 int main() {
-  Subject subj;
-  Wrapper wrapper(&subj, &Subject::foo, {{ "arg1", 0 }, { "arg2", 0}});
-
-
   try {
+    Subject1 subj1;
+    Wrapper wrapper1(&subj1, &Subject1::foo, {{ "a", 0 }, { "b", 0}});
 
-  } catch (bad_cast e) {
+    Subject2 subj2;
+    Wrapper wrapper2(&subj2, &Subject2::bar, {{ "x", 9 }});
+
+    Engine engine;
+    engine.addWrapper("command1", &wrapper1);
+    engine.addWrapper("command2", &wrapper2);
+
+    cout << engine.execute("command1", {{"a", 3}, {"b", 4}}) << endl;
+    cout << engine.execute("command1", {{"c", 5}, {"b", 4}}) << endl;
+
+    cout << engine.execute("command2", {{"x", 6}}) << endl;
+    cout << engine.execute("command2", {}) << endl;
+
+    cout << engine.execute("command3", {}) << endl;
+
+  } catch (exception e) {
     cout << e.what() << endl;
   }
-
   return 0;
 }
