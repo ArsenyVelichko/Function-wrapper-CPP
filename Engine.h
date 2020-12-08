@@ -8,12 +8,13 @@ using namespace std;
 template<class... Wrappers>
 class Engine {
 public:
-  Engine(tuple<Wrappers*...> tuple) : mTuple(tuple) {}
+  Engine() {}
+  Engine(const tuple<Wrappers*...>& tuple) : mTuple(tuple) {}
 
-  template<size_t i, class... Args>
-  auto execute(Args... args) {
+  template<size_t i, class... NamedArgs>
+  auto execute(NamedArgs... namedArgs) {
     auto wrapper = get<i>(mTuple);
-    return (*wrapper)(args...);
+    return (*wrapper)(namedArgs...);
   }
 
   template<class T>
@@ -27,8 +28,7 @@ private:
 };
 
 template<class... Wrappers>
-auto createEngine(Wrappers*... wrappers) {
-  auto tuple = make_tuple(wrappers...);
-  return Engine<Wrappers...>(tuple);
+auto createEngine() {
+  return Engine<Wrappers...>();
 }
 

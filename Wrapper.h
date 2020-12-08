@@ -1,27 +1,43 @@
 #pragma once
+#include "Subject.h"
+#include <tuple>
+#include <string>
+#include <map>
 
+using namespace std;
 
+class Wrapper {
+private:
+  struct Base {
+    Subject* mSubj;
+    Base(Subject* subject) : mSubj(subject) {}
+  };
 
-template<class> class Wrapper;
+  template<typename... Args>
+  struct Command : Base {
+    using MemFunc = int (Subject::*)(Args...);
+    MemFunc mFunc;
 
-template<class T, class R, class... Args>
-class Wrapper<R(T::*)(Args...)> {
-public:
-  using MemFunc = R(T::*)(Args...);
+    Command(Subject* subject, MemFunc function) : mFunc(function), Base(subject) {}
 
-  Wrapper(T* obj, MemFunc func) : m_obj(obj), m_func(func) {}
+    int operator()(Args... args) {
+      (mSubj->*mFunc)(args...);
+    }
+  };
 
-  R operator() (Args... args) {
-    return (m_obj->*m_func)(args...);
+  Base* mCommand;
+  map<string, pair<int, int>> mArgsRegister;
+
+  template<class Tuple, size_t... I>
+  void registerArgs(const Tuple& tuple, index_sequence<I...>) {
+    ((mArgsRegister[get<I>(tuple).first] = pair<int, int>(I, get<I>(tuple).second)), ...);
   }
 
-private:
-  MemFunc m_func;
-  T* m_obj;
+public:
+  template<typename... Args, typename Tuple = tuple<pair<string, Args>...>>
+  Wrapper(Subject* subject, int (Subject::*func)(Args...), const Tuple& args) {
+    mCommand = new Command<Args...>(subject, func);
+    auto indexes = make_index_sequence<tuple_size_v<Tuple>>{};
+    registerArgs(args, indexes);
+  }
 };
-
-template<class T, class R, class... Args>
-Wrapper<R(T::*)(Args...)> wrap(T* obj, R(T::*func)(Args...)) {
-  using WrapperType = Wrapper<R(T::*)(Args...)>;
-  return WrapperType(obj, func);
-}
